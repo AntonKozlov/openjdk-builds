@@ -46,6 +46,8 @@ jobs:
         sudo chown root:root $BUNDLENAME/lib/criu
         sudo chmod u+s $BUNDLENAME/lib/criu
         tar -zcf $BUNDLENAME.tar.gz $BUNDLENAME
+        tar -zcf $BUNDLENAME-docs.tar.gz $BUNDLENAME-docs
+
 
     - uses: actions/upload-artifact@v3
       with:
@@ -55,4 +57,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: jdk-crac-${{ github.run_number }}-docs
-        path: jdk-crac-${{ github.run_number }}-docs
+        path: jdk-crac-${{ github.run_number }}-docs.tar.gz
