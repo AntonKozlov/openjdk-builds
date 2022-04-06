@@ -5,7 +5,7 @@ CRIU_RELEASE=release-crac
 
 id=$(curl https://api.github.com/repos/crac/criu/releases/tags/$CRIU_RELEASE | jq .assets[0].id)
 curl https://api.github.com/repos/crac/criu/releases/assets/$id -LJOH 'Accept: application/octet-stream'
-CRIU_BUNDLE=criu-crac-$CRIU_RELEASE
+CRIU_BUNDLE=criu-dist
 
 tar axf $CRIU_BUNDLE.tar.gz
 
