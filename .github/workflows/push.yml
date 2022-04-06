@@ -49,7 +49,7 @@ jobs:
         tar -zcf $BUNDLENAME-docs.tar.gz $BUNDLENAME-docs
 
     - name: Upload artifacts
-    - uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         path: |
           jdk.tar.gz
