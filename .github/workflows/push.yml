@@ -55,4 +55,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: jdk-crac-docs-${{ github.run_number }}
-        path: jdk-crac-docs
+        path: jdk-crac-docs-${{ github.run_number }}
