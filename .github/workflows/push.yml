@@ -39,18 +39,20 @@ jobs:
         id=$(curl https://api.github.com/repos/crac/criu/releases/tags/release-crac | jq .assets[0].id)
         curl https://api.github.com/repos/crac/criu/releases/assets/$id -LJOH 'Accept: application/octet-stream'
         tar axf criu-dist.tar.gz
-        BUNDLENAME=jdk
+        BUNDLENAME=jdk-crac-${{ github.run_number }}
         mv build/linux-x86_64-server-release/images/jdk $BUNDLENAME
         mv build/linux-x86_64-server-release/images/docs $BUNDLENAME-docs
         cp criu-dist/sbin/criu $BUNDLENAME/lib/criu
         sudo chown root:root $BUNDLENAME/lib/criu
         sudo chmod u+s $BUNDLENAME/lib/criu
         tar -zcf $BUNDLENAME.tar.gz $BUNDLENAME
-        tar -zcf $BUNDLENAME-docs.tar.gz $BUNDLENAME-docs
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v3
       with:
-        path: |
-          jdk.tar.gz
-          jdk-docs.tar.gz
+        name: jdk-crac-${{ github.run_number }}
+        path: jdk-crac-${{ github.run_number }}.tar.gz
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: jdk-crac-docs-${{ github.run_number }}
+        path: jdk-crac-docs
