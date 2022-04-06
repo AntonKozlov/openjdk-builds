@@ -37,7 +37,7 @@ jobs:
       shell: docker exec build bash -e {0}
 
     - name: Bundle
-      run: bundle.sh ${{ steps.compute.outputs.BUNDLENAME }}
+      run: ./bundle.sh ${{ steps.compute.outputs.BUNDLENAME }}
 
     - uses: actions/upload-artifact@v3
       with:
