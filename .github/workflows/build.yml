@@ -92,34 +92,33 @@ jobs:
     needs: build
     if: ${{ startsWith(github.ref, 'refs/tags/' }}
     steps:
-      steps:
-        - uses: actions/download-artifact@v3
-          with:
-            name: ${{ needs.build.outputs.BUNDLENAME }}
-        - uses: actions/download-artifact@v3
-          with:
-            name: ${{ needs.build.outputs.BUNDLENAME }}-docs
-
-      - uses: softprops/action-gh-release@v1
+      - uses: actions/download-artifact@v3
         with:
-          files: |
-            ${{ needs.build.outputs.BUNDLENAME }}.tar.gz
-            ${{ needs.build.outputs.BUNDLENAME }}-docs.tar.gz
-
-      - name: Checkout gh-pages
-        uses: actions/checkout@v2
+          name: ${{ needs.build.outputs.BUNDLENAME }}
+      - uses: actions/download-artifact@v3
         with:
-          ref: 'gh-pages'
-          path: 'gh-pages'
+          name: ${{ needs.build.outputs.BUNDLENAME }}-docs
 
-      - name: Upload Javadoc to Github Pages
-        if: 
-        run: |
-          tar axf ${{ needs.build.outputs.BUNDLENAME }}-docs.tar.gz
-          rsync --delete -r ${{ needs.build.outputs.BUNDLENAME }}-docs/ gh-pages/javadoc/
-          git config --global user.email "gha@crac.github.com"
-          git config --global user.name "GitHub Actions"
-          git -C gh-pages add .
-          git -C gh-pages commit -m "${{ needs.build.outputs.TAG }}"
-          git -C gh-pages push origin gh-pages
+    - uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{ needs.build.outputs.BUNDLENAME }}.tar.gz
+          ${{ needs.build.outputs.BUNDLENAME }}-docs.tar.gz
+
+    - name: Checkout gh-pages
+      uses: actions/checkout@v2
+      with:
+        ref: 'gh-pages'
+        path: 'gh-pages'
+
+    - name: Upload Javadoc to Github Pages
+      if: 
+      run: |
+        tar axf ${{ needs.build.outputs.BUNDLENAME }}-docs.tar.gz
+        rsync --delete -r ${{ needs.build.outputs.BUNDLENAME }}-docs/ gh-pages/javadoc/
+        git config --global user.email "gha@crac.github.com"
+        git config --global user.name "GitHub Actions"
+        git -C gh-pages add .
+        git -C gh-pages commit -m "${{ needs.build.outputs.TAG }}"
+        git -C gh-pages push origin gh-pages
 
