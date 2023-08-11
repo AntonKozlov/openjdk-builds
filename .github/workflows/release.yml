@@ -45,11 +45,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Get the BootJDK'
+        id: bootjdk
+        uses: ./.github/actions/get-bootjdk
+        with:
+          platform: linux-x64
+
       - run:
           CC=gcc-7 CXX=g++-7
           bash ./configure
           --with-build-user=x
           --disable-warnings-as-errors
+          --with-boot-jdk=${{ steps.bootjdk.outputs.path }}
           --with-version-pre=crac
           --with-version-build=${{ steps.compute.outputs.BUILDNUMBER }}
           --with-version-opt=${{ github.run_number }}
