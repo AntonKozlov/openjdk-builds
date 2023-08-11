@@ -48,6 +48,7 @@ jobs:
       - run:
           CC=gcc-7 CXX=g++-7
           bash ./configure
+          --with-build-user=x
           --disable-warnings-as-errors
           --with-version-pre=crac
           --with-version-build=${{ steps.compute.outputs.BUILDNUMBER }}
