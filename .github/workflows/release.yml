@@ -54,7 +54,7 @@ jobs:
       - run:
           CC=gcc-7 CXX=g++-7
           bash ./configure
-          --with-build-user=x
+          --with-build-user=build
           --disable-warnings-as-errors
           --with-boot-jdk=${{ steps.bootjdk.outputs.path }}
           --with-version-pre=crac
