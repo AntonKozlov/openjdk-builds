@@ -28,7 +28,7 @@ jobs:
             BUILDNUMBER=00
           fi
           for i in TAG BUNDLENAME BUILDNUMBER; do
-            echo "::set-output name=${i}::${!i}"
+            echo "${i}=${!i}" >> "$GITHUB_OUTPUT"
           done
 
       - uses: actions/checkout@v2
