@@ -2,6 +2,11 @@ module:java.base
 java.io
 java.lang
 java.lang.annotation
+java.lang.classfile
+java.lang.classfile.attribute
+java.lang.classfile.components
+java.lang.classfile.constantpool
+java.lang.classfile.instruction
 java.lang.constant
 java.lang.foreign
 java.lang.invoke
@@ -257,6 +262,7 @@ module:jdk.localedata
 module:jdk.management
 com.sun.management
 jdk.crac.management
+jdk.management
 module:jdk.management.agent
 module:jdk.management.jfr
 jdk.management.jfr

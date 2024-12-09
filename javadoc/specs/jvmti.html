@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JVM(TM) Tool Interface 22.0.0</title>
+        <title>JVM(TM) Tool Interface 24.0.0</title>
         <link rel="stylesheet" href="../resources/jdk-default.css"/><style>
           .centered { text-align: center; }
           .leftAligned { text-align: left; }
@@ -49,13 +49,13 @@
           div.topBorder { border-top: 2px solid black; }
         </style>
     </head>
-    <body> <header class="draft-header" role="banner">This specification is not final and is subject to change. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java22speclicense.html">license terms</a>.</header><header id="title-block-header"> <div class="navbar"> <div></div> <nav><ul><li><a href="./../api/index.html">API</a> <li><a href="./index.html">OTHER SPECIFICATIONS <li><a href="./man/index.html">TOOL GUIDES</a></ul></nav> </div> </header>
+    <body> <header class="draft-header" role="banner">This specification is not final and is subject to change. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java24speclicense.html">license terms</a>.</header><header id="title-block-header"> <div class="navbar"> <div></div> <nav><ul><li><a href="./../api/index.html">API</a> <li><a href="./index.html">OTHER SPECIFICATIONS</a> <li><a href="./man/index.html">TOOL GUIDES</a></ul></nav> </div> </header>
         <header class="centered">
             <h1>
                     JVM<sup style="font-size: xx-small">TM</sup>  Tool Interface
   
             </h1>
-            <h2>Version 22.0</h2>
+            <h2>Version 24.0</h2>
         </header>
         <nav>
             <ul class="toc">
@@ -117,6 +117,9 @@
                     <ul>
                         <li>
                             <a href="#jvmtiEnvAccess">Accessing Functions</a>
+                        </li>
+                        <li>
+                            <a href="#nullPointers">Null Pointers</a>
                         </li>
                         <li>
                             <a href="#functionReturn">Function Return Values</a>
@@ -702,7 +705,12 @@ Agent_OnUnload_L(JavaVM *vm)</pre>
                     
             </ul>
                 <code>JNI_CreateJavaVM</code> (in the JNI Invocation API) will prepend these options to the options supplied
-    in its <code>JavaVMInitArgs</code> argument. Platforms may disable this feature in cases where security is
+    in its <code>JavaVMInitArgs</code> argument. Note that module related options must be expressed in their
+    "option=value" format (note the required '=' between "option" and "value") for <code>JNI_CreateJavaVM</code>
+    to process them correctly.
+    
+            <div class="sep"></div>
+                Platforms may disable this feature in cases where security is
     a concern; for example, the Reference Implementation disables this feature on Unix systems when
     the effective user or group ID differs from the real ID.
     This feature is intended to support the initialization of tools -- specifically including the
@@ -1001,6 +1009,10 @@ jvmtiEnv *jvmti;
     Thus, unlike JNI which has one environment per thread, JVM<small style="font-size: xx-small">&nbsp;</small>TI environments work
     across threads and are created dynamically.
   
+            <h3 id="nullPointers">Null Pointers</h3>
+                Parts of this specification refer to a "null pointer" as a possible function parameter
+    or return value. A "null pointer" is C <code>NULL</code> or C++ <code>nullptr</code>.
+  
             <h3 id="functionReturn">Function Return Values</h3>
                 JVM<small style="font-size: xx-small">&nbsp;</small>TI functions always return an
     <a href="#ErrorSection">error code</a> via the
@@ -1010,7 +1022,7 @@ jvmtiEnv *jvmti;
     In some cases, JVM<small style="font-size: xx-small">&nbsp;</small>TI functions allocate memory that your program must
     explicitly deallocate. This is indicated in the individual JVM<small style="font-size: xx-small">&nbsp;</small>TI
     function descriptions.  Empty lists, arrays, sequences, etc are
-    returned as <code>NULL</code>.
+    returned as a null pointer.
     
             <div class="sep"></div>
                 In the event that the JVM<small style="font-size: xx-small">&nbsp;</small>TI function encounters
@@ -1743,7 +1755,7 @@ Allocate(jvmtiEnv* env,
                 <tr>
                     <th scope="row"><code id="Allocate.mem_ptr">mem_ptr</code></th><td><code>unsigned char**</code></td><td>
             On return, a pointer to the beginning of the allocated memory.
-            If <code>size</code> is zero, <code>NULL</code> is returned.
+            If <code>size</code> is zero, a null pointer is returned.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>unsigned char*</code>. On return, the <code>unsigned char*</code> points to a newly allocated array of size <code>size</code>.  The array should be freed with <a href="#Deallocate"><code>Deallocate</code></a>. </td>
@@ -1775,7 +1787,9 @@ Allocate(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#Allocate.mem_ptr"><code>mem_ptr</code></a> is <code>NULL</code>.
+          <a href="#Allocate.mem_ptr"><code>mem_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -1861,7 +1875,7 @@ Deallocate(jvmtiEnv* env,
   If
   <code>mem</code>
   is
-  <code>NULL</code>, the call is ignored.
+  <code>null</code> pointer, the call is ignored.
 </td>
                 </tr>
             </table>
@@ -2579,7 +2593,7 @@ GetThreadState(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -2613,7 +2627,9 @@ GetThreadState(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadState.thread_state_ptr"><code>thread_state_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadState.thread_state_ptr"><code>thread_state_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -2627,14 +2643,14 @@ GetCurrentThread(jvmtiEnv* env,
             </blockquote>
                     Get the current thread.
         The current thread is the Java programming language thread which has called the function.
-        The function may return <code>NULL</code> in the start phase if the
+        The function may return a null pointer in the start phase if the
         <a href="#jvmtiCapabilities.can_generate_early_vmstart">
         <code>can_generate_early_vmstart</code></a> capability is enabled
         and the <code>java.lang.Thread</code> class has not been initialized yet.
         
             <div class="sep"></div>
                     Note that most JVM<small style="font-size: xx-small">&nbsp;</small>TI functions that take a thread
-        as an argument will accept <code>NULL</code> to mean
+        as an argument will accept null to mean
         the current thread.
       
             <div class="sep"></div>
@@ -2685,7 +2701,7 @@ GetCurrentThread(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><code id="GetCurrentThread.thread_ptr">thread_ptr</code></th><td><code><a href="#jthread">jthread</a>*</code></td><td>
-             On return, points to the current thread, or <code>NULL</code>.
+             On return, points to the current thread, or null.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>jthread</code>. On return, the <code>jthread</code> has been set. The object returned by <code>thread_ptr</code> is a JNI local reference and must be <a href="#refs">managed</a>.
@@ -2708,7 +2724,9 @@ GetCurrentThread(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetCurrentThread.thread_ptr"><code>thread_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetCurrentThread.thread_ptr"><code>thread_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -2810,13 +2828,17 @@ GetAllThreads(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllThreads.threads_count_ptr"><code>threads_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllThreads.threads_count_ptr"><code>threads_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllThreads.threads_ptr"><code>threads_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllThreads.threads_ptr"><code>threads_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -2905,7 +2927,7 @@ SuspendThread(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
             </table>
@@ -3096,13 +3118,17 @@ SuspendThreadList(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#SuspendThreadList.request_list"><code>request_list</code></a> is <code>NULL</code>.
+          <a href="#SuspendThreadList.request_list"><code>request_list</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#SuspendThreadList.results"><code>results</code></a> is <code>NULL</code>.
+          <a href="#SuspendThreadList.results"><code>results</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -3206,7 +3232,7 @@ SuspendAllVirtualThreads(jvmtiEnv* env,
   If
   <code>except_list</code>
   is
-  <code>NULL</code>, not an error if <code>except_count == 0</code>.
+  <code>null</code> pointer, not an error if <code>except_count == 0</code>.
 </td>
                 </tr>
             </table>
@@ -3249,7 +3275,7 @@ SuspendAllVirtualThreads(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          Both <a href="#SuspendAllVirtualThreads.except_list"><code>except_list</code></a> was <code>NULL</code>
+          Both <a href="#SuspendAllVirtualThreads.except_list"><code>except_list</code></a> was null
           and <a href="#SuspendAllVirtualThreads.except_count"><code>except_count</code></a> was non-zero.
         </td>
                 </tr>
@@ -3530,13 +3556,17 @@ ResumeThreadList(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#ResumeThreadList.request_list"><code>request_list</code></a> is <code>NULL</code>.
+          <a href="#ResumeThreadList.request_list"><code>request_list</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#ResumeThreadList.results"><code>results</code></a> is <code>NULL</code>.
+          <a href="#ResumeThreadList.results"><code>results</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -3640,7 +3670,7 @@ ResumeAllVirtualThreads(jvmtiEnv* env,
   If
   <code>except_list</code>
   is
-  <code>NULL</code>, not an error if <code>except_count == 0</code>.
+  <code>null</code> pointer, not an error if <code>except_count == 0</code>.
 </td>
                 </tr>
             </table>
@@ -3683,7 +3713,7 @@ ResumeAllVirtualThreads(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          Both <a href="#ResumeAllVirtualThreads.except_list"><code>except_list</code></a> was <code>NULL</code>
+          Both <a href="#ResumeAllVirtualThreads.except_list"><code>except_list</code></a> was null
           and <a href="#ResumeAllVirtualThreads.except_count"><code>except_count</code></a> was non-zero.
         </td>
                 </tr>
@@ -4040,7 +4070,7 @@ GetThreadInfo(jvmtiEnv* env,
                 <tr>
                     <th scope="row"><code id="jvmtiThreadInfo.thread_group">thread_group</code></th><td><code><a href="#jthreadGroup">jthreadGroup</a></code></td><td>
             The thread group to which this thread belongs.
-            <code>NULL</code> if the thread has terminated.
+            Null if the thread has terminated.
           </td>
                 </tr>
                 <tr>
@@ -4062,7 +4092,7 @@ GetThreadInfo(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -4097,7 +4127,9 @@ The object returned in the field <code>context_class_loader</code> of <code>jvmt
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadInfo.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadInfo.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -4186,7 +4218,7 @@ GetOwnedMonitorInfo(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -4242,13 +4274,17 @@ GetOwnedMonitorInfo(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetOwnedMonitorInfo.owned_monitor_count_ptr"><code>owned_monitor_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetOwnedMonitorInfo.owned_monitor_count_ptr"><code>owned_monitor_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetOwnedMonitorInfo.owned_monitors_ptr"><code>owned_monitors_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetOwnedMonitorInfo.owned_monitors_ptr"><code>owned_monitors_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -4365,7 +4401,7 @@ GetOwnedMonitorStackDepthInfo(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -4423,13 +4459,17 @@ GetOwnedMonitorStackDepthInfo(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetOwnedMonitorStackDepthInfo.monitor_info_count_ptr"><code>monitor_info_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetOwnedMonitorStackDepthInfo.monitor_info_count_ptr"><code>monitor_info_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetOwnedMonitorStackDepthInfo.monitor_info_ptr"><code>monitor_info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetOwnedMonitorStackDepthInfo.monitor_info_ptr"><code>monitor_info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -4516,13 +4556,13 @@ GetCurrentContendedMonitor(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="GetCurrentContendedMonitor.monitor_ptr">monitor_ptr</code></th><td><code><a href="#jobject">jobject</a>*</code></td><td>
               On return, filled with the current contended monitor, or
-              NULL if there is none.
+              null if there is none.
             
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>jobject</code>. On return, the <code>jobject</code> has been set. The object returned by <code>monitor_ptr</code> is a JNI local reference and must be <a href="#refs">managed</a>.
@@ -4566,7 +4606,9 @@ GetCurrentContendedMonitor(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetCurrentContendedMonitor.monitor_ptr"><code>monitor_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetCurrentContendedMonitor.monitor_ptr"><code>monitor_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -4766,7 +4808,7 @@ RunAgentThread(jvmtiEnv* env,
   If
   <code>arg</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed to the start function.
+  <code>null</code> pointer, A null pointer is passed to the start function.
 </td>
                 </tr>
                 <tr>
@@ -4812,7 +4854,9 @@ RunAgentThread(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#RunAgentThread.proc"><code>proc</code></a> is <code>NULL</code>.
+          <a href="#RunAgentThread.proc"><code>proc</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -4827,7 +4871,7 @@ SetThreadLocalStorage(jvmtiEnv* env,
             </blockquote>
                     The VM stores a pointer value associated with each environment-thread
         pair. This pointer value is called <i>thread-local storage</i>.
-        This value is <code>NULL</code> unless set with this function.
+        This value is null unless set with this function.
         Agents can allocate memory in which they store thread specific
         information. By setting thread-local storage it can then be
         accessed with
@@ -4892,7 +4936,7 @@ SetThreadLocalStorage(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -4907,7 +4951,7 @@ SetThreadLocalStorage(jvmtiEnv* env,
   If
   <code>data</code>
   is
-  <code>NULL</code>, value is set to <code>NULL</code>.
+  <code>null</code> pointer, value is set to null.
 </td>
                 </tr>
             </table>
@@ -5002,7 +5046,7 @@ GetThreadLocalStorage(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -5011,7 +5055,7 @@ GetThreadLocalStorage(jvmtiEnv* env,
             storage is returned.
             If thread-local storage has not been set with
             <a href="#SetThreadLocalStorage"><code>SetThreadLocalStorage</code></a> the returned
-            pointer is <code>NULL</code>.
+            pointer is null.
           
                         <div class="sep"></div>
                     </td>
@@ -5045,7 +5089,9 @@ GetThreadLocalStorage(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadLocalStorage.data_ptr"><code>data_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadLocalStorage.data_ptr"><code>data_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -5163,13 +5209,17 @@ GetTopThreadGroups(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetTopThreadGroups.group_count_ptr"><code>group_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetTopThreadGroups.group_count_ptr"><code>group_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetTopThreadGroups.groups_ptr"><code>groups_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetTopThreadGroups.groups_ptr"><code>groups_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -5305,7 +5355,9 @@ The pointer returned in the field <code>name</code> of <code>jvmtiThreadGroupInf
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadGroupInfo.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadGroupInfo.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -5428,25 +5480,33 @@ GetThreadGroupChildren(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadGroupChildren.thread_count_ptr"><code>thread_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadGroupChildren.thread_count_ptr"><code>thread_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadGroupChildren.threads_ptr"><code>threads_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadGroupChildren.threads_ptr"><code>threads_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadGroupChildren.group_count_ptr"><code>group_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadGroupChildren.group_count_ptr"><code>group_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadGroupChildren.groups_ptr"><code>groups_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadGroupChildren.groups_ptr"><code>groups_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -5688,7 +5748,7 @@ if (err == JVMTI_ERROR_NONE &amp;&amp; count &gt;= 1) {
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -5773,13 +5833,17 @@ if (err == JVMTI_ERROR_NONE &amp;&amp; count &gt;= 1) {
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetStackTrace.frame_buffer"><code>frame_buffer</code></a> is <code>NULL</code>.
+          <a href="#GetStackTrace.frame_buffer"><code>frame_buffer</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetStackTrace.count_ptr"><code>count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetStackTrace.count_ptr"><code>count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -5939,13 +6003,17 @@ err = (*jvmti)-&gt;Deallocate(jvmti, stack_info);
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllStackTraces.stack_info_ptr"><code>stack_info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllStackTraces.stack_info_ptr"><code>stack_info_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllStackTraces.thread_count_ptr"><code>thread_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllStackTraces.thread_count_ptr"><code>thread_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -6089,7 +6157,9 @@ GetThreadListStackTraces(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadListStackTraces.thread_list"><code>thread_list</code></a> is <code>NULL</code>.
+          <a href="#GetThreadListStackTraces.thread_list"><code>thread_list</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -6101,7 +6171,9 @@ GetThreadListStackTraces(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadListStackTraces.stack_info_ptr"><code>stack_info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadListStackTraces.stack_info_ptr"><code>stack_info_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -6173,7 +6245,7 @@ GetFrameCount(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -6212,7 +6284,9 @@ GetFrameCount(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetFrameCount.count_ptr"><code>count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetFrameCount.count_ptr"><code>count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -6492,7 +6566,7 @@ GetFrameLocation(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -6558,13 +6632,17 @@ GetFrameLocation(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetFrameLocation.method_ptr"><code>method_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetFrameLocation.method_ptr"><code>method_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetFrameLocation.location_ptr"><code>location_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetFrameLocation.location_ptr"><code>location_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -6659,7 +6737,7 @@ NotifyFramePop(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -6879,13 +6957,13 @@ ForceEarlyReturnObject(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="ForceEarlyReturnObject.value">value</code></th><td><code><a href="#jobject">jobject</a></code></td><td>
             The return value for the called frame.
-            An object or <code>NULL</code>.
+            An object or a null pointer.
           </td>
                 </tr>
             </table>
@@ -7048,7 +7126,7 @@ ForceEarlyReturnInt(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -7204,7 +7282,7 @@ ForceEarlyReturnLong(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -7357,7 +7435,7 @@ ForceEarlyReturnFloat(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -7510,7 +7588,7 @@ ForceEarlyReturnDouble(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -7662,7 +7740,7 @@ ForceEarlyReturnVoid(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
             </table>
@@ -8921,7 +8999,7 @@ class C2 extends C1 implements I2 {
             <a href="#JVMTI_HEAP_REFERENCE_CONSTANT_POOL"><code>JVMTI_HEAP_REFERENCE_CONSTANT_POOL</code></a>,
             <a href="#JVMTI_HEAP_REFERENCE_STACK_LOCAL"><code>JVMTI_HEAP_REFERENCE_STACK_LOCAL</code></a>,
             or <a href="#JVMTI_HEAP_REFERENCE_JNI_LOCAL"><code>JVMTI_HEAP_REFERENCE_JNI_LOCAL</code></a>.
-            Otherwise <code>NULL</code>.
+            Otherwise a null pointer.
           </td>
                     </tr>
                     <tr>
@@ -8961,7 +9039,7 @@ class C2 extends C1 implements I2 {
             Points to the tag of the referrer object, or
             points to the zero if the referrer
             object is not tagged.
-            <code>NULL</code> if the referrer in not an object (that is,
+            Null if the referrer in not an object (that is,
             this callback is reporting a heap root).
             To set the tag value to be associated with the referrer object
             the agent sets the <code>jlong</code> pointed to by the parameter.
@@ -9311,7 +9389,7 @@ FollowReferences(jvmtiEnv* env,
         <a href="#jvmtiPrimitiveFieldCallback"><code>jvmtiPrimitiveFieldCallback</code></a>.
         
             <div class="sep"></div>
-                    Whether a callback is provided or is <code>NULL</code> only determines
+                    Whether a callback is provided or is null only determines
         whether the callback will be invoked, it does not influence
         which objects are visited nor does it influence whether other callbacks
         will be invoked.
@@ -9510,7 +9588,7 @@ FollowReferences(jvmtiEnv* env,
                           If
   <code>klass</code>
   is
-  <code>NULL</code>, callbacks are not limited to instances of a particular
+  <code>null</code> pointer, callbacks are not limited to instances of a particular
                     class.
 </td>
                 </tr>
@@ -9525,7 +9603,7 @@ FollowReferences(jvmtiEnv* env,
                           If
   <code>initial_object</code>
   is
-  <code>NULL</code>, references are followed from the heap roots.
+  <code>null</code> pointer, references are followed from the heap roots.
 </td>
                 </tr>
                 <tr>
@@ -9549,7 +9627,7 @@ FollowReferences(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, a null pointer is passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -9588,7 +9666,9 @@ FollowReferences(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#FollowReferences.callbacks"><code>callbacks</code></a> is <code>NULL</code>.
+          <a href="#FollowReferences.callbacks"><code>callbacks</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -9631,7 +9711,7 @@ IterateThroughHeap(jvmtiEnv* env,
                     Unless the iteration is aborted by the
         <a href="#jvmtiHeapVisitControl">Heap Visit Control Flags</a>
         returned by a callback, all objects in the heap are visited.
-        Whether a callback is provided or is <code>NULL</code> only determines
+        Whether a callback is provided or is null only determines
         whether the callback will be invoked, it does not influence
         which objects are visited nor does it influence whether other callbacks
         will be invoked.
@@ -9831,7 +9911,7 @@ IterateThroughHeap(jvmtiEnv* env,
                           If
   <code>klass</code>
   is
-  <code>NULL</code>, callbacks are not limited to instances of a particular class.
+  <code>null</code> pointer, callbacks are not limited to instances of a particular class.
 </td>
                 </tr>
                 <tr>
@@ -9855,7 +9935,7 @@ IterateThroughHeap(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, a null pointer is passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -9889,7 +9969,9 @@ IterateThroughHeap(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IterateThroughHeap.callbacks"><code>callbacks</code></a> is <code>NULL</code>.
+          <a href="#IterateThroughHeap.callbacks"><code>callbacks</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -10020,7 +10102,9 @@ GetTag(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetTag.tag_ptr"><code>tag_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetTag.tag_ptr"><code>tag_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -10262,7 +10346,7 @@ GetObjectsWithTags(jvmtiEnv* env,
   If
   <code>object_result_ptr</code>
   is
-  <code>NULL</code>, this information is not returned.
+  <code>null</code> pointer, this information is not returned.
 The objects returned by <code>object_result_ptr</code> are JNI local references and must be <a href="#refs">managed</a>.
 </td>
                 </tr>
@@ -10279,7 +10363,7 @@ The objects returned by <code>object_result_ptr</code> are JNI local references 
   If
   <code>tag_result_ptr</code>
   is
-  <code>NULL</code>, this information is not returned.
+  <code>null</code> pointer, this information is not returned.
 </td>
                 </tr>
             </table>
@@ -10319,13 +10403,17 @@ The objects returned by <code>object_result_ptr</code> are JNI local references 
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetObjectsWithTags.tags"><code>tags</code></a> is <code>NULL</code>.
+          <a href="#GetObjectsWithTags.tags"><code>tags</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetObjectsWithTags.count_ptr"><code>count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetObjectsWithTags.count_ptr"><code>count_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -11136,7 +11224,7 @@ IterateOverObjectsReachableFromObject(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, a null pointer is passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -11171,7 +11259,9 @@ IterateOverObjectsReachableFromObject(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IterateOverObjectsReachableFromObject.object_reference_callback"><code>object_reference_callback</code></a> is <code>NULL</code>.
+          <a href="#IterateOverObjectsReachableFromObject.object_reference_callback"><code>object_reference_callback</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -11220,7 +11310,7 @@ IterateOverReachableObjects(jvmtiEnv* env,
         are reported. In other words, the <a href="#IterateOverReachableObjects.object_ref_callback"><code>object_ref_callback</code></a>
         callback will not be called until the appropriate callback has been called
         for all roots. If the <a href="#IterateOverReachableObjects.object_ref_callback"><code>object_ref_callback</code></a> callback is
-        specified as <code>NULL</code> then this function returns after
+        specified as null then this function returns after
         reporting the root objects to the profiler.
         
             <div class="sep"></div>
@@ -11314,7 +11404,7 @@ IterateOverReachableObjects(jvmtiEnv* env,
                           If
   <code>heap_root_callback</code>
   is
-  <code>NULL</code>, do not report heap roots.
+  <code>null</code> pointer, do not report heap roots.
 </td>
                 </tr>
                 <tr>
@@ -11330,7 +11420,7 @@ IterateOverReachableObjects(jvmtiEnv* env,
                           If
   <code>stack_ref_callback</code>
   is
-  <code>NULL</code>, do not report stack references.
+  <code>null</code> pointer, do not report stack references.
 </td>
                 </tr>
                 <tr>
@@ -11344,7 +11434,7 @@ IterateOverReachableObjects(jvmtiEnv* env,
                           If
   <code>object_ref_callback</code>
   is
-  <code>NULL</code>, do not follow references from the root objects.
+  <code>null</code> pointer, do not follow references from the root objects.
 </td>
                 </tr>
                 <tr>
@@ -11359,7 +11449,7 @@ IterateOverReachableObjects(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, a null pointer is passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -11512,7 +11602,7 @@ IterateOverHeap(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, a null pointer is passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -11547,7 +11637,9 @@ IterateOverHeap(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IterateOverHeap.heap_object_callback"><code>heap_object_callback</code></a> is <code>NULL</code>.
+          <a href="#IterateOverHeap.heap_object_callback"><code>heap_object_callback</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -11686,7 +11778,7 @@ IterateOverInstancesOfClass(jvmtiEnv* env,
   If
   <code>user_data</code>
   is
-  <code>NULL</code>, <code>NULL</code> is passed as the user supplied data.
+  <code>null</code> pointer, null pointeris passed as the user supplied data.
 </td>
                 </tr>
             </table>
@@ -11727,7 +11819,9 @@ IterateOverInstancesOfClass(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IterateOverInstancesOfClass.heap_object_callback"><code>heap_object_callback</code></a> is <code>NULL</code>.
+          <a href="#IterateOverInstancesOfClass.heap_object_callback"><code>heap_object_callback</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -11874,7 +11968,7 @@ GetLocalObject(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -11966,7 +12060,9 @@ GetLocalObject(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalObject.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalObject.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -12060,7 +12156,7 @@ GetLocalInstance(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -12136,7 +12232,9 @@ GetLocalInstance(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalInstance.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalInstance.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -12230,7 +12328,7 @@ GetLocalInt(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -12323,7 +12421,9 @@ GetLocalInt(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalInt.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalInt.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -12415,7 +12515,7 @@ GetLocalLong(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -12505,7 +12605,9 @@ GetLocalLong(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalLong.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalLong.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -12597,7 +12699,7 @@ GetLocalFloat(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -12687,7 +12789,9 @@ GetLocalFloat(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalFloat.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalFloat.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -12779,7 +12883,7 @@ GetLocalDouble(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -12869,7 +12973,9 @@ GetLocalDouble(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalDouble.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalDouble.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -12961,7 +13067,7 @@ SetLocalObject(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -13157,7 +13263,7 @@ SetLocalInt(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -13341,7 +13447,7 @@ SetLocalLong(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -13522,7 +13628,7 @@ SetLocalFloat(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -13703,7 +13809,7 @@ SetLocalDouble(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -14768,13 +14874,17 @@ GetAllModules(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllModules.module_count_ptr"><code>module_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllModules.module_count_ptr"><code>module_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAllModules.modules_ptr"><code>modules_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAllModules.modules_ptr"><code>modules_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -14795,7 +14905,7 @@ GetNamedModule(jvmtiEnv* env,
             <div class="sep"></div>
                     If a named module is defined to the class loader and it
         contains the package then that named module is returned,
-        otherwise <code>NULL</code> is returned.
+        otherwise null is returned.
         
             <div class="sep"></div>
                   
@@ -14851,7 +14961,7 @@ GetNamedModule(jvmtiEnv* env,
             
           </code></td><td>
             A class loader.
-            If the <code>class_loader</code> is not <code>NULL</code>
+            If the <code>class_loader</code> is not null
             or a subclass of <code>java.lang.ClassLoader</code>
             this function returns
             <a href="#JVMTI_ERROR_ILLEGAL_ARGUMENT"><code>JVMTI_ERROR_ILLEGAL_ARGUMENT</code></a>.
@@ -14860,7 +14970,7 @@ GetNamedModule(jvmtiEnv* env,
                           If
   <code>class_loader</code>
   is
-  <code>NULL</code>, the bootstrap loader is assumed.
+  <code>null</code> pointer, the bootstrap loader is assumed.
 </td>
                 </tr>
                 <tr>
@@ -14876,7 +14986,7 @@ GetNamedModule(jvmtiEnv* env,
                 <tr>
                     <th scope="row"><code id="GetNamedModule.module_ptr">module_ptr</code></th><td><code><a href="#jobject">jobject</a>*</code></td><td>
             On return, points to a <code>java.lang.Module</code> object
-            or points to <code>NULL</code>.
+            or points to null.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>jobject</code>. On return, the <code>jobject</code> has been set. The object returned by <code>module_ptr</code> is a JNI local reference and must be <a href="#refs">managed</a>.
@@ -14899,18 +15009,22 @@ GetNamedModule(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_ILLEGAL_ARGUMENT"><code>JVMTI_ERROR_ILLEGAL_ARGUMENT</code></a></th><td>
-          If class loader is not <code>NULL</code> and is not a class loader object.
+          If class loader is not null and is not a class loader object.
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetNamedModule.package_name"><code>package_name</code></a> is <code>NULL</code>.
+          <a href="#GetNamedModule.package_name"><code>package_name</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetNamedModule.module_ptr"><code>module_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetNamedModule.module_ptr"><code>module_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15022,13 +15136,17 @@ AddModuleReads(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleReads.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleReads.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleReads.to_module"><code>to_module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleReads.to_module"><code>to_module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15158,19 +15276,25 @@ AddModuleExports(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleExports.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleExports.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleExports.pkg_name"><code>pkg_name</code></a> is <code>NULL</code>.
+          <a href="#AddModuleExports.pkg_name"><code>pkg_name</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleExports.to_module"><code>to_module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleExports.to_module"><code>to_module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15301,19 +15425,25 @@ AddModuleOpens(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleOpens.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleOpens.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleOpens.pkg_name"><code>pkg_name</code></a> is <code>NULL</code>.
+          <a href="#AddModuleOpens.pkg_name"><code>pkg_name</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleOpens.to_module"><code>to_module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleOpens.to_module"><code>to_module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15426,13 +15556,17 @@ AddModuleUses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleUses.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleUses.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleUses.service"><code>service</code></a> is <code>NULL</code>.
+          <a href="#AddModuleUses.service"><code>service</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15558,19 +15692,25 @@ AddModuleProvides(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleProvides.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#AddModuleProvides.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleProvides.service"><code>service</code></a> is <code>NULL</code>.
+          <a href="#AddModuleProvides.service"><code>service</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddModuleProvides.impl_class"><code>impl_class</code></a> is <code>NULL</code>.
+          <a href="#AddModuleProvides.impl_class"><code>impl_class</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15674,13 +15814,17 @@ IsModifiableModule(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsModifiableModule.module"><code>module</code></a> is <code>NULL</code>.
+          <a href="#IsModifiableModule.module"><code>module</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsModifiableModule.is_modifiable_module_ptr"><code>is_modifiable_module_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsModifiableModule.is_modifiable_module_ptr"><code>is_modifiable_module_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -15886,13 +16030,17 @@ GetLoadedClasses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLoadedClasses.class_count_ptr"><code>class_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLoadedClasses.class_count_ptr"><code>class_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLoadedClasses.classes_ptr"><code>classes_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLoadedClasses.classes_ptr"><code>classes_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -15988,7 +16136,7 @@ GetClassLoaderClasses(jvmtiEnv* env,
                           If
   <code>initiating_loader</code>
   is
-  <code>NULL</code>, the classes initiated by the bootstrap loader will be returned.
+  <code>null</code> pointer, the classes initiated by the bootstrap loader will be returned.
 </td>
                 </tr>
                 <tr>
@@ -16024,13 +16172,17 @@ GetClassLoaderClasses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassLoaderClasses.class_count_ptr"><code>class_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassLoaderClasses.class_count_ptr"><code>class_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassLoaderClasses.classes_ptr"><code>classes_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassLoaderClasses.classes_ptr"><code>classes_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -16151,7 +16303,7 @@ GetClassSignature(jvmtiEnv* env,
   If
   <code>signature_ptr</code>
   is
-  <code>NULL</code>, the signature is not returned.
+  <code>null</code> pointer, the signature is not returned.
 </td>
                 </tr>
                 <tr>
@@ -16162,14 +16314,14 @@ GetClassSignature(jvmtiEnv* env,
             On return, points to the generic signature of the class, encoded as a
             <a href="#mUTF">modified UTF-8</a> string.
             If there is no generic signature attribute for the class, then,
-            on return, points to <code>NULL</code>.
+            on return, points to null.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>char*</code>. On return, the <code>char*</code> points to a newly allocated array.  The array should be freed with <a href="#Deallocate"><code>Deallocate</code></a>. 
   If
   <code>generic_ptr</code>
   is
-  <code>NULL</code>, the generic signature is not returned.
+  <code>null</code> pointer, the generic signature is not returned.
 </td>
                 </tr>
             </table>
@@ -16327,7 +16479,9 @@ GetClassStatus(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassStatus.status_ptr"><code>status_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassStatus.status_ptr"><code>status_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -16464,7 +16618,9 @@ GetSourceFileName(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSourceFileName.source_name_ptr"><code>source_name_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetSourceFileName.source_name_ptr"><code>source_name_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -16580,7 +16736,9 @@ GetClassModifiers(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -16710,13 +16868,17 @@ GetClassMethods(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassMethods.method_count_ptr"><code>method_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassMethods.method_count_ptr"><code>method_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassMethods.methods_ptr"><code>methods_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassMethods.methods_ptr"><code>methods_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -16832,13 +16994,17 @@ GetClassFields(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassFields.field_count_ptr"><code>field_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassFields.field_count_ptr"><code>field_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassFields.fields_ptr"><code>fields_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassFields.fields_ptr"><code>fields_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -16953,13 +17119,17 @@ GetImplementedInterfaces(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetImplementedInterfaces.interface_count_ptr"><code>interface_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetImplementedInterfaces.interface_count_ptr"><code>interface_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetImplementedInterfaces.interfaces_ptr"><code>interfaces_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetImplementedInterfaces.interfaces_ptr"><code>interfaces_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -17077,13 +17247,17 @@ GetClassVersionNumbers(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassVersionNumbers.minor_version_ptr"><code>minor_version_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassVersionNumbers.minor_version_ptr"><code>minor_version_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassVersionNumbers.major_version_ptr"><code>major_version_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassVersionNumbers.major_version_ptr"><code>major_version_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -17266,19 +17440,25 @@ GetConstantPool(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetConstantPool.constant_pool_count_ptr"><code>constant_pool_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetConstantPool.constant_pool_count_ptr"><code>constant_pool_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetConstantPool.constant_pool_byte_count_ptr"><code>constant_pool_byte_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetConstantPool.constant_pool_byte_count_ptr"><code>constant_pool_byte_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetConstantPool.constant_pool_bytes_ptr"><code>constant_pool_bytes_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetConstantPool.constant_pool_bytes_ptr"><code>constant_pool_bytes_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -17378,7 +17558,9 @@ IsInterface(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsInterface.is_interface_ptr"><code>is_interface_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsInterface.is_interface_ptr"><code>is_interface_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -17478,7 +17660,9 @@ IsArrayClass(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsArrayClass.is_array_class_ptr"><code>is_array_class_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsArrayClass.is_array_class_ptr"><code>is_array_class_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -17629,7 +17813,9 @@ IsModifiableClass(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsModifiableClass.is_modifiable_class_ptr"><code>is_modifiable_class_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsModifiableClass.is_modifiable_class_ptr"><code>is_modifiable_class_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -17703,7 +17889,7 @@ GetClassLoader(jvmtiEnv* env,
               this class.
               If the class was not created by a class loader
               or if the class loader is the bootstrap class loader,
-              points to <code>NULL</code>.
+              points to null.
             
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>jobject</code>. On return, the <code>jobject</code> has been set. The object returned by <code>classloader_ptr</code> is a JNI local reference and must be <a href="#refs">managed</a>.
@@ -17732,7 +17918,9 @@ GetClassLoader(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetClassLoader.classloader_ptr"><code>classloader_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetClassLoader.classloader_ptr"><code>classloader_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -17865,7 +18053,9 @@ GetSourceDebugExtension(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSourceDebugExtension.source_debug_extension_ptr"><code>source_debug_extension_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetSourceDebugExtension.source_debug_extension_ptr"><code>source_debug_extension_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -18206,7 +18396,9 @@ RetransformClasses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#RetransformClasses.classes"><code>classes</code></a> is <code>NULL</code>.
+          <a href="#RetransformClasses.classes"><code>classes</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -18431,7 +18623,7 @@ RedefineClasses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          One of <code>class_bytes</code> is <code>NULL</code>.
+          One of <code>class_bytes</code> is null.
         </td>
                 </tr>
                 <tr>
@@ -18525,7 +18717,9 @@ RedefineClasses(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#RedefineClasses.class_definitions"><code>class_definitions</code></a> is <code>NULL</code>.
+          <a href="#RedefineClasses.class_definitions"><code>class_definitions</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -18652,7 +18846,9 @@ GetObjectSize(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetObjectSize.size_ptr"><code>size_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetObjectSize.size_ptr"><code>size_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -18756,7 +18952,9 @@ GetObjectHashCode(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetObjectHashCode.hash_code_ptr"><code>hash_code_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetObjectHashCode.hash_code_ptr"><code>hash_code_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -18780,6 +18978,13 @@ GetObjectMonitorUsage(jvmtiEnv* env,
                     Get information about the object's monitor.
         The fields of the <a href="#jvmtiMonitorUsage"><code>jvmtiMonitorUsage</code></a> structure
         are filled in with information about usage of the monitor.
+        
+            <div class="sep"></div>
+                    <span class="bold"> This function does not support getting information about an object's monitor
+            when it is owned by a virtual thread. It also does not support returning a
+            reference to virtual threads that are waiting to own a monitor or waiting to
+            be notified.
+        </span>
           
       
             <div class="sep"></div>
@@ -18850,32 +19055,37 @@ GetObjectMonitorUsage(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.owner">owner</code></th><td><code><a href="#jthread">jthread</a></code></td><td>
-              The thread owning this monitor, or <code>NULL</code> if unused
+              The platform thread owning this monitor, or null if owned
+              by a virtual thread or not owned
             </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.entry_count">entry_count</code></th><td><code><a href="#jint">jint</a></code></td><td>
-            The number of times the owning thread has entered the monitor
+            The number of times the platform thread owning this monitor has entered it, 
+            or <code>0</code> if owned by a virtual thread or not owned
           </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.waiter_count">waiter_count</code></th><td><code><a href="#jint">jint</a></code></td><td>
-            The number of threads waiting to own this monitor
+            The number of platform threads waiting to own this monitor, or <code>0</code>
+            if only virtual threads are waiting or no threads are waiting
           </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.waiters">waiters</code></th><td><code><a href="#jthread">jthread</a>*</code></td><td>
-              The <code>waiter_count</code> waiting threads
+              The <code>waiter_count</code> waiting platform threads
             </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.notify_waiter_count">notify_waiter_count</code></th><td><code><a href="#jint">jint</a></code></td><td>
-            The number of threads waiting to be notified by this monitor
+            The number of platform threads waiting to own this monitor, or <code>0</code>
+            if only virtual threads are waiting to be notified or no threads are waiting
+            to be notified
           </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="jvmtiMonitorUsage.notify_waiters">notify_waiters</code></th><td><code><a href="#jthread">jthread</a>*</code></td><td>
-              The <code>notify_waiter_count</code> threads waiting to be notified
+              The <code>notify_waiter_count</code> platform threads waiting to be notified
             </td>
                 </tr>
             </table>
@@ -18933,7 +19143,9 @@ The pointer returned in the field <code>notify_waiters</code> of <code>jvmtiMoni
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetObjectMonitorUsage.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetObjectMonitorUsage.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -19049,7 +19261,7 @@ GetFieldName(jvmtiEnv* env,
   If
   <code>name_ptr</code>
   is
-  <code>NULL</code>, the name is not returned.
+  <code>null</code> pointer, the name is not returned.
 </td>
                 </tr>
                 <tr>
@@ -19065,7 +19277,7 @@ GetFieldName(jvmtiEnv* env,
   If
   <code>signature_ptr</code>
   is
-  <code>NULL</code>, the signature is not returned.
+  <code>null</code> pointer, the signature is not returned.
 </td>
                 </tr>
                 <tr>
@@ -19076,14 +19288,14 @@ GetFieldName(jvmtiEnv* env,
             On return, points to the generic signature of the field, encoded as a
             <a href="#mUTF">modified UTF-8</a> string.
             If there is no generic signature attribute for the field, then,
-            on return, points to <code>NULL</code>.
+            on return, points to null.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>char*</code>. On return, the <code>char*</code> points to a newly allocated array.  The array should be freed with <a href="#Deallocate"><code>Deallocate</code></a>. 
   If
   <code>generic_ptr</code>
   is
-  <code>NULL</code>, the generic signature is not returned.
+  <code>null</code> pointer, the generic signature is not returned.
 </td>
                 </tr>
             </table>
@@ -19221,7 +19433,9 @@ GetFieldDeclaringClass(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetFieldDeclaringClass.declaring_class_ptr"><code>declaring_class_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetFieldDeclaringClass.declaring_class_ptr"><code>declaring_class_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -19331,7 +19545,9 @@ GetFieldModifiers(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetFieldModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetFieldModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -19471,7 +19687,9 @@ IsFieldSynthetic(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsFieldSynthetic.is_synthetic_ptr"><code>is_synthetic_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsFieldSynthetic.is_synthetic_ptr"><code>is_synthetic_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -19646,7 +19864,7 @@ GetMethodName(jvmtiEnv* env,
   If
   <code>name_ptr</code>
   is
-  <code>NULL</code>, the name is not returned.
+  <code>null</code> pointer, the name is not returned.
 </td>
                 </tr>
                 <tr>
@@ -19662,7 +19880,7 @@ GetMethodName(jvmtiEnv* env,
   If
   <code>signature_ptr</code>
   is
-  <code>NULL</code>, the signature is not returned.
+  <code>null</code> pointer, the signature is not returned.
 </td>
                 </tr>
                 <tr>
@@ -19673,14 +19891,14 @@ GetMethodName(jvmtiEnv* env,
             On return, points to the generic signature of the method, encoded as a
             <a href="#mUTF">modified UTF-8</a> string.
             If there is no generic signature attribute for the method, then,
-            on return, points to <code>NULL</code>.
+            on return, points to null.
           
                         <div class="sep"></div>
                         Agent passes a pointer to a <code>char*</code>. On return, the <code>char*</code> points to a newly allocated array.  The array should be freed with <a href="#Deallocate"><code>Deallocate</code></a>. 
   If
   <code>generic_ptr</code>
   is
-  <code>NULL</code>, the generic signature is not returned.
+  <code>null</code> pointer, the generic signature is not returned.
 </td>
                 </tr>
             </table>
@@ -19798,7 +20016,9 @@ GetMethodDeclaringClass(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetMethodDeclaringClass.declaring_class_ptr"><code>declaring_class_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetMethodDeclaringClass.declaring_class_ptr"><code>declaring_class_ptr</code></a> is 
+  a null pointer
+  .
             
         </td>
                 </tr>
@@ -19896,7 +20116,9 @@ GetMethodModifiers(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetMethodModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetMethodModifiers.modifiers_ptr"><code>modifiers_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20004,7 +20226,9 @@ GetMaxLocals(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetMaxLocals.max_ptr"><code>max_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetMaxLocals.max_ptr"><code>max_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20109,7 +20333,9 @@ GetArgumentsSize(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetArgumentsSize.size_ptr"><code>size_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetArgumentsSize.size_ptr"><code>size_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20277,13 +20503,17 @@ GetLineNumberTable(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLineNumberTable.entry_count_ptr"><code>entry_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLineNumberTable.entry_count_ptr"><code>entry_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLineNumberTable.table_ptr"><code>table_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLineNumberTable.table_ptr"><code>table_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20410,13 +20640,17 @@ GetMethodLocation(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetMethodLocation.start_location_ptr"><code>start_location_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetMethodLocation.start_location_ptr"><code>start_location_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetMethodLocation.end_location_ptr"><code>end_location_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetMethodLocation.end_location_ptr"><code>end_location_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20537,7 +20771,7 @@ GetLocalVariableTable(jvmtiEnv* env,
                     <th scope="row"><code id="jvmtiLocalVariableEntry.generic_signature">generic_signature</code></th><td><code>char*</code></td><td>
             The local variable's generic signature, encoded as a
             <a href="#mUTF">modified UTF-8</a> string.
-            The value of this field will be <code>NULL</code> for any local
+            The value of this field will be null for any local
             variable which does not have a generic type.
           </td>
                 </tr>
@@ -20616,13 +20850,17 @@ GetLocalVariableTable(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalVariableTable.entry_count_ptr"><code>entry_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalVariableTable.entry_count_ptr"><code>entry_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetLocalVariableTable.table_ptr"><code>table_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetLocalVariableTable.table_ptr"><code>table_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20762,13 +21000,17 @@ GetBytecodes(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetBytecodes.bytecode_count_ptr"><code>bytecode_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetBytecodes.bytecode_count_ptr"><code>bytecode_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetBytecodes.bytecodes_ptr"><code>bytecodes_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetBytecodes.bytecodes_ptr"><code>bytecodes_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20865,7 +21107,9 @@ IsMethodNative(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsMethodNative.is_native_ptr"><code>is_native_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsMethodNative.is_native_ptr"><code>is_native_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -20993,7 +21237,9 @@ IsMethodSynthetic(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsMethodSynthetic.is_synthetic_ptr"><code>is_synthetic_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsMethodSynthetic.is_synthetic_ptr"><code>is_synthetic_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -21091,7 +21337,9 @@ IsMethodObsolete(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#IsMethodObsolete.is_obsolete_ptr"><code>is_obsolete_ptr</code></a> is <code>NULL</code>.
+          <a href="#IsMethodObsolete.is_obsolete_ptr"><code>is_obsolete_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -21313,7 +21561,7 @@ method(wrapped_foo) -&gt; nativeImplementation(foo)</pre>
   If
   <code>prefix</code>
   is
-  <code>NULL</code>, 
+  <code>null</code> pointer, 
               any existing prefix in this environment is cancelled
             .
 </td>
@@ -21374,7 +21622,7 @@ SetNativeMethodPrefixes(jvmtiEnv* env,
          a prefix is the same as calling this function with
          <a href="#SetNativeMethodPrefixes.prefix_count"><code>prefix_count</code></a> of <code>1</code>.
          Calling <code>SetNativeMethodPrefix</code> with
-         <code>NULL</code> is the same as calling this function with
+         a null pointer is the same as calling this function with
          <a href="#SetNativeMethodPrefixes.prefix_count"><code>prefix_count</code></a> of <code>0</code>.
       
             <div class="sep"></div>
@@ -21490,7 +21738,9 @@ SetNativeMethodPrefixes(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#SetNativeMethodPrefixes.prefixes"><code>prefixes</code></a> is <code>NULL</code>.
+          <a href="#SetNativeMethodPrefixes.prefixes"><code>prefixes</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -21618,13 +21868,17 @@ CreateRawMonitor(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#CreateRawMonitor.name"><code>name</code></a> is <code>NULL</code>.
+          <a href="#CreateRawMonitor.name"><code>name</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#CreateRawMonitor.monitor_ptr"><code>monitor_ptr</code></a> is <code>NULL</code>.
+          <a href="#CreateRawMonitor.monitor_ptr"><code>monitor_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -22376,7 +22630,9 @@ SetJNIFunctionTable(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#SetJNIFunctionTable.function_table"><code>function_table</code></a> is <code>NULL</code>.
+          <a href="#SetJNIFunctionTable.function_table"><code>function_table</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -22470,7 +22726,9 @@ GetJNIFunctionTable(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetJNIFunctionTable.function_table"><code>function_table</code></a> is <code>NULL</code>.
+          <a href="#GetJNIFunctionTable.function_table"><code>function_table</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -22513,7 +22771,7 @@ SetEventCallbacks(jvmtiEnv* env,
         table have no effect.
         This is an atomic action, all callbacks are set at once.
         No events are sent before this function is called.
-        When an entry is <code>NULL</code> or when the event is beyond
+        When an entry is null or when the event is beyond
         <a href="#SetEventCallbacks.size_of_callbacks"><code>size_of_callbacks</code></a> no event is sent.
         Details on events are
         described <a href="#EventSection">later</a> in this document.
@@ -22580,7 +22838,7 @@ SetEventCallbacks(jvmtiEnv* env,
   If
   <code>callbacks</code>
   is
-  <code>NULL</code>, remove the existing callbacks.
+  <code>null</code> pointer, remove the existing callbacks.
 </td>
                 </tr>
                 <tr>
@@ -22650,7 +22908,7 @@ SetEventNotificationMode(jvmtiEnv* env,
                     </tr>
                 </table>
             </blockquote>
-                    If <code>event_thread</code> is <code>NULL</code>,
+                    If <code>event_thread</code> is null,
         the event is enabled or disabled globally; otherwise, it is
         enabled or disabled for a particular thread.
         An event is generated for
@@ -22887,7 +23145,7 @@ SetEventNotificationMode(jvmtiEnv* env,
                           If
   <code>event_thread</code>
   is
-  <code>NULL</code>, event is controlled at the global level.
+  <code>null</code> pointer, event is controlled at the global level.
 </td>
                 </tr>
                 <tr>
@@ -22912,12 +23170,12 @@ SetEventNotificationMode(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_INVALID_THREAD"><code>JVMTI_ERROR_INVALID_THREAD</code></a></th><td>
-          <a href="#SetEventNotificationMode.event_thread"><code>event_thread</code></a> is non-<code>NULL</code> and is not a valid thread.
+          <a href="#SetEventNotificationMode.event_thread"><code>event_thread</code></a> is non-null and is not a valid thread.
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_THREAD_NOT_ALIVE"><code>JVMTI_ERROR_THREAD_NOT_ALIVE</code></a></th><td>
-          <a href="#SetEventNotificationMode.event_thread"><code>event_thread</code></a> is non-<code>NULL</code> and is not alive
+          <a href="#SetEventNotificationMode.event_thread"><code>event_thread</code></a> is non-null and is not alive
           (has not been started or has terminated).
         </td>
                 </tr>
@@ -23366,7 +23624,7 @@ GenerateEvents(jvmtiEnv* env,
                     </tr>
                     <tr>
                         <th scope="row"><code id="jvmtiParamInfo.null_ok">null_ok</code></th><td><code><a href="#jboolean">jboolean</a></code></td><td>
-              Is a <code>NULL</code> argument permitted? Applies only to pointer and object types.
+              Is a null pointer argument permitted? Applies only to pointer and object types.
             </td>
                     </tr>
                 </table>
@@ -23556,13 +23814,17 @@ GetExtensionFunctions(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-            <a href="#GetExtensionFunctions.extension_count_ptr"><code>extension_count_ptr</code></a> is <code>NULL</code>.
+            <a href="#GetExtensionFunctions.extension_count_ptr"><code>extension_count_ptr</code></a> is 
+  a null pointer
+  .
               
           </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-            <a href="#GetExtensionFunctions.extensions"><code>extensions</code></a> is <code>NULL</code>.
+            <a href="#GetExtensionFunctions.extensions"><code>extensions</code></a> is 
+  a null pointer
+  .
             
           </td>
                 </tr>
@@ -23703,13 +23965,17 @@ GetExtensionEvents(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-            <a href="#GetExtensionEvents.extension_count_ptr"><code>extension_count_ptr</code></a> is <code>NULL</code>.
+            <a href="#GetExtensionEvents.extension_count_ptr"><code>extension_count_ptr</code></a> is 
+  a null pointer
+  .
               
           </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-            <a href="#GetExtensionEvents.extensions"><code>extensions</code></a> is <code>NULL</code>.
+            <a href="#GetExtensionEvents.extensions"><code>extensions</code></a> is 
+  a null pointer
+  .
             
           </td>
                 </tr>
@@ -23776,7 +24042,7 @@ SetExtensionEventCallback(jvmtiEnv* env,
             jvmtiExtensionEvent callback)</pre>
             </blockquote>
                       Sets the callback function for an extension event and
-          enables the event. Or, if the callback is <code>NULL</code>, disables
+          enables the event. Or, if the callback is null, disables
           the event.  Note that unlike standard events, setting
           the callback and enabling the event are a single operation.
         
@@ -23840,7 +24106,7 @@ SetExtensionEventCallback(jvmtiEnv* env,
               <a href="#jvmtiExtensionEvent">jvmtiExtensionEvent</a>
               
             </code></td><td>
-              If <code>callback</code> is non-<code>NULL</code>,
+              If <code>callback</code> is non-null,
               set <code>callback</code> to be the event callback function
               and enable the event.
             
@@ -23848,7 +24114,7 @@ SetExtensionEventCallback(jvmtiEnv* env,
                           If
   <code>callback</code>
   is
-  <code>NULL</code>, disable the event.
+  <code>null</code> pointer, disable the event.
 </td>
                 </tr>
             </table>
@@ -24514,7 +24780,9 @@ GetPotentialCapabilities(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetPotentialCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetPotentialCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -24613,7 +24881,9 @@ AddCapabilities(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is <code>NULL</code>.
+          <a href="#AddCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -24707,7 +24977,9 @@ RelinquishCapabilities(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#RelinquishCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is <code>NULL</code>.
+          <a href="#RelinquishCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -24805,7 +25077,9 @@ GetCapabilities(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetCapabilities.capabilities_ptr"><code>capabilities_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25070,7 +25344,9 @@ GetCurrentThreadCpuTimerInfo(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetCurrentThreadCpuTimerInfo.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetCurrentThreadCpuTimerInfo.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25095,7 +25371,7 @@ GetCurrentThreadCpuTime(jvmtiEnv* env,
             <a href="#GetCurrentThreadCpuTimerInfo"><code>GetCurrentThreadCpuTimerInfo</code></a> vs
             <a href="#GetThreadCpuTimerInfo"><code>GetThreadCpuTimerInfo</code></a>).
             An implementation is not required to support this function
-            when the current thread is a virtual thread, in which case 
+            when the current thread is a virtual thread, in which case
             <a href="#JVMTI_ERROR_UNSUPPORTED_OPERATION"><code>JVMTI_ERROR_UNSUPPORTED_OPERATION</code></a> will be returned.
             On many platforms this call will be equivalent to:
 
@@ -25229,7 +25505,9 @@ GetCurrentThreadCpuTime(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetCurrentThreadCpuTime.nanos_ptr"><code>nanos_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetCurrentThreadCpuTime.nanos_ptr"><code>nanos_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25355,7 +25633,9 @@ GetThreadCpuTimerInfo(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadCpuTimerInfo.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadCpuTimerInfo.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25454,7 +25734,7 @@ GetThreadCpuTime(jvmtiEnv* env,
     If
     <code>thread</code>
     is
-    <code>NULL</code>, the current thread is used.
+    null, the current thread is used.
   </td>
                 </tr>
                 <tr>
@@ -25511,7 +25791,9 @@ GetThreadCpuTime(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetThreadCpuTime.nanos_ptr"><code>nanos_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetThreadCpuTime.nanos_ptr"><code>nanos_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25606,7 +25888,9 @@ GetTimerInfo(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetTimerInfo.info_ptr"><code>info_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetTimerInfo.info_ptr"><code>info_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25709,7 +25993,9 @@ GetTime(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetTime.nanos_ptr"><code>nanos_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetTime.nanos_ptr"><code>nanos_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25799,7 +26085,9 @@ GetAvailableProcessors(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetAvailableProcessors.processor_count_ptr"><code>processor_count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetAvailableProcessors.processor_count_ptr"><code>processor_count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -25934,7 +26222,9 @@ AddToBootstrapClassLoaderSearch(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddToBootstrapClassLoaderSearch.segment"><code>segment</code></a> is <code>NULL</code>.
+          <a href="#AddToBootstrapClassLoaderSearch.segment"><code>segment</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -26062,7 +26352,9 @@ AddToSystemClassLoaderSearch(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#AddToSystemClassLoaderSearch.segment"><code>segment</code></a> is <code>NULL</code>.
+          <a href="#AddToSystemClassLoaderSearch.segment"><code>segment</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -26220,13 +26512,17 @@ GetSystemProperties(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSystemProperties.count_ptr"><code>count_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetSystemProperties.count_ptr"><code>count_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSystemProperties.property_ptr"><code>property_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetSystemProperties.property_ptr"><code>property_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -26347,13 +26643,17 @@ GetSystemProperty(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSystemProperty.property"><code>property</code></a> is <code>NULL</code>.
+          <a href="#GetSystemProperty.property"><code>property</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetSystemProperty.value_ptr"><code>value_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetSystemProperty.value_ptr"><code>value_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -26440,7 +26740,7 @@ SetSystemProperty(jvmtiEnv* env,
   If
   <code>value_ptr</code>
   is
-  <code>NULL</code>, 
+  <code>null</code> pointer, 
               do not set the value, but return <a href="#JVMTI_ERROR_NOT_AVAILABLE"><code>JVMTI_ERROR_NOT_AVAILABLE</code></a>
               if the property is not writeable
             .
@@ -26468,7 +26768,9 @@ SetSystemProperty(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#SetSystemProperty.property"><code>property</code></a> is <code>NULL</code>.
+          <a href="#SetSystemProperty.property"><code>property</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -26965,7 +27267,9 @@ GetPhase(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetPhase.phase_ptr"><code>phase_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetPhase.phase_ptr"><code>phase_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -27073,7 +27377,7 @@ SetEnvironmentLocalStorage(jvmtiEnv* env,
             </blockquote>
                     The VM stores a pointer value associated with each environment.
         This pointer value is called <i>environment-local storage</i>.
-        This value is <code>NULL</code> unless set with this function.
+        This value is null unless set with this function.
         Agents can allocate memory in which they store environment specific
         information. By setting environment-local storage it can then be
         accessed with
@@ -27149,7 +27453,7 @@ SetEnvironmentLocalStorage(jvmtiEnv* env,
   If
   <code>data</code>
   is
-  <code>NULL</code>, value is set to <code>NULL</code>.
+  <code>null</code> pointer, value is set to null.
 </td>
                 </tr>
             </table>
@@ -27229,7 +27533,7 @@ GetEnvironmentLocalStorage(jvmtiEnv* env,
             storage is returned.
             If environment-local storage has not been set with
             <a href="#SetEnvironmentLocalStorage"><code>SetEnvironmentLocalStorage</code></a> returned
-            pointer is <code>NULL</code>.
+            pointer is null.
           
                         <div class="sep"></div>
                     </td>
@@ -27251,7 +27555,9 @@ GetEnvironmentLocalStorage(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetEnvironmentLocalStorage.data_ptr"><code>data_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetEnvironmentLocalStorage.data_ptr"><code>data_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -27414,7 +27720,9 @@ GetVersionNumber(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetVersionNumber.version_ptr"><code>version_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetVersionNumber.version_ptr"><code>version_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -27520,7 +27828,9 @@ GetErrorName(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetErrorName.name_ptr"><code>name_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetErrorName.name_ptr"><code>name_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -27776,7 +28086,9 @@ GetJLocationFormat(jvmtiEnv* env,
                 </tr>
                 <tr>
                     <th scope="row"><a href="#JVMTI_ERROR_NULL_POINTER"><code>JVMTI_ERROR_NULL_POINTER</code></a></th><td>
-          <a href="#GetJLocationFormat.format_ptr"><code>format_ptr</code></a> is <code>NULL</code>.
+          <a href="#GetJLocationFormat.format_ptr"><code>format_ptr</code></a> is 
+  a null pointer
+  .
           
         </td>
                 </tr>
@@ -27970,7 +28282,7 @@ SetHeapSamplingInterval(jvmtiEnv* env,
     </code>
                 </dt>
                 <dd>
-                          Pointer is unexpectedly <code>NULL</code>.
+                          Pointer is unexpectedly null.
     
                     <div class="sep"></div>
                 </dd>
@@ -30786,7 +31098,7 @@ FieldAccess(jvmtiEnv *jvmti_env,
                 <tr>
                     <th scope="row"><code id="FieldAccess.object">object</code></th><td><code><a href="#jobject">jobject</a></code></td><td>
             Object with the field being accessed if the field is an
-            instance field; <code>NULL</code> otherwise
+            instance field; a null pointer otherwise
           </td>
                 </tr>
                 <tr>
@@ -30922,7 +31234,7 @@ FieldModification(jvmtiEnv *jvmti_env,
                 <tr>
                     <th scope="row"><code id="FieldModification.object">object</code></th><td><code><a href="#jobject">jobject</a></code></td><td>
             Object with the field being modified if the field is an
-            instance field; <code>NULL</code> otherwise
+            instance field; a null pointer otherwise
           </td>
                 </tr>
                 <tr>
@@ -31422,7 +31734,7 @@ NativeMethodBind(jvmtiEnv *jvmti_env,
           <a href="#JNIEnv">JNIEnv</a>
         *</code></td><td>
             The JNI environment of the event (current) thread
-            Will be <code>NULL</code> if sent during the primordial
+            Will be null if sent during the primordial
             <a href="#GetPhase">phase</a>.
           </td>
                 </tr>
@@ -31595,7 +31907,7 @@ Exception(jvmtiEnv *jvmti_env,
                 </tr>
                 <tr>
                     <th scope="row"><code id="Exception.catch_method">catch_method</code></th><td><code><a href="#jmethodID">jmethodID</a></code></td><td>
-            Method that will catch the exception, or <code>NULL</code> if no known catch
+            Method that will catch the exception, or null if no known catch
           </td>
                 </tr>
                 <tr>
@@ -31635,7 +31947,7 @@ ExceptionCatch(jvmtiEnv *jvmti_env,
       <code>exception</code> object identifies the exception object. Exceptions
       caught in native methods are not necessarily available by the time the
       exception catch is reported, so the <code>exception</code> field is set
-      to <code>NULL</code>.
+      to null.
     
             <div class="sep"></div>
             <div class="wideDivTableCtnr">
@@ -32386,7 +32698,7 @@ ClassFileLoadHook(jvmtiEnv *jvmti_env,
     <a href="#GetNamedModule"><code>GetNamedModule</code></a>
     function can be used to map class loader and a package name to a module.
     When a class is being redefined or retransformed then
-    <code>class_being_redefined</code> is non <code>NULL</code> and so
+    <code>class_being_redefined</code> is non-null and so
     the JNI <code>GetModule</code> function can also be used
     to obtain the Module.
     
@@ -32510,13 +32822,13 @@ ClassFileLoadHook(jvmtiEnv *jvmti_env,
           The class being
           <a href="#RedefineClasses">redefined</a> or
           <a href="#RetransformClasses">retransformed</a>.
-          <code>NULL</code> if sent by class load.
+          A null pointer if sent by class load.
         </td>
                 </tr>
                 <tr>
                     <th scope="row"><code id="ClassFileLoadHook.loader">loader</code></th><td><code><a href="#jobject">jobject</a></code></td><td>
             The class loader loading the class.
-            <code>NULL</code> if the bootstrap class loader.
+            A null pointer if the bootstrap class loader.
           </td>
                 </tr>
                 <tr>
@@ -32524,8 +32836,8 @@ ClassFileLoadHook(jvmtiEnv *jvmti_env,
             Name of class being loaded as a VM internal qualified name
             (for example, "java/util/List"), encoded as a
             <a href="#mUTF">modified UTF-8</a> string.
-            Note: if the class is defined with a <code>NULL</code> name or
-            without a name specified, <code>name</code> will be <code>NULL</code>.
+            Note: if the class is defined with a null pointer name,
+            <code>name</code> will be null.
         </td>
                 </tr>
                 <tr>
@@ -32972,7 +33284,7 @@ CompiledMethodLoad(jvmtiEnv *jvmti_env,
           The native address range of each entry is from
           <a href="#jvmtiAddrLocationMap.start_address"><code>start_address</code></a>
           to <code>start_address-1</code> of the next entry.
-          <code>NULL</code> if mapping information cannot be supplied.
+          A null pointer if mapping information cannot be supplied.
         </td>
                 </tr>
                 <tr>
@@ -34974,7 +35286,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                 </tr>
                 <tr>
                     <th scope="row">22 Jan 2003</th><td>
-    Allow NULL as RunAgentThread arg.
+    Allow null as RunAgentThread arg.
   </td>
                 </tr>
                 <tr>
@@ -34990,7 +35302,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                 </tr>
                 <tr>
                     <th scope="row">31 Jan 2003</th><td>
-    Change GetFieldName to allow NULLs like GetMethodName.
+    Change GetFieldName to allow null like GetMethodName.
   </td>
                 </tr>
                 <tr>
@@ -35183,7 +35495,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         13 May 2003</th><td>
       Clarify semantics of raw monitors.
       Change flags on <code>GetThreadStatus</code>.
-      <code>GetClassLoader</code> return NULL for the bootstrap class loader.
+      <code>GetClassLoader</code> return a null pointer for the bootstrap class loader.
       Add <code>GetClassName</code> issue.
       Define local variable signature.
       Disallow zero in annotations array of <code>GetObjectsWithAnnotations</code>.
@@ -35197,7 +35509,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         <br>
                         14 May 2003</th><td>
       Define the data type <code>jvmtiEventCallbacks</code>.
-      Zero length allocations return NULL.
+      Zero length allocations return a null pointer.
       Keep SetAllocationHooks in JVMDI, but remove from JVM<small style="font-size: xx-small">&nbsp;</small>TI.
       Add JVMTI_THREAD_STATUS_FLAG_INTERRUPTED.
   </td>
@@ -35239,7 +35551,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
       Overhaul Heap functionality: single callback,
       remove GetHeapRoots, add reachable iterators,
       and rename "annotation" to "tag".
-      NULL thread parameter on most functions is current
+      A null pointer thread parameter on most functions is current
       thread.
       Add timers.
       Remove ForceExit.
@@ -35292,7 +35604,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         <br>
                         26 June 2003</th><td>
       SetThreadLocalStorage and SetEnvironmentLocalStorage should allow value
-      to be set to NULL.
+      to be set to null pointer.
       NotifyFramePop, GetFrameLocationm and all the local variable operations
       needed to have their wording about frames fixed.
       Grammar and clarity need to be fixed throughout.
@@ -35340,7 +35652,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         <br>
                         14 July 2003</th><td>
       Technical Publications Department corrections.
-      Allow thread and environment local storage to be set to NULL.
+      Allow thread and environment local storage to be set to null pointer.
   </td>
                 </tr>
                 <tr>
@@ -35396,7 +35708,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                     <th scope="row"><span class="bold">v80</span>
                         <br>
                         26 July 2003</th><td>
-      Allow NULL (means bootstrap loader) for GetClassloaderClasses.
+      Allow null pointer (means bootstrap loader) for GetClassloaderClasses.
       Add new heap reference kinds for references from classes.
       Add timer information struct and query functions.
       Add AvailableProcessors.
@@ -35555,7 +35867,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                     <th scope="row"><span class="bold">0.2.95</span>
                         <br>
                         3 December 2003</th><td>
-      Allow NULL user_data in heap iterators.
+      Allow null pointer user_data in heap iterators.
   </td>
                 </tr>
                 <tr>
@@ -35853,7 +36165,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         5 November 2004</th><td>
       Add missing function table layout.
       Add missing description of C++ member function format of functions.
-      Clarify that name in CFLH can be NULL.
+      Clarify that name in CFLH can be null pointer.
       Released as part of J2SE<sup style="font-size: xx-small">TM</sup>  5.0.
   </td>
                 </tr>
@@ -35870,7 +36182,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
       Allow AddToBootstrapClassLoaderSearch be used in live phase.
       Fix historic rubbish in the descriptions of the heap_object_callback
       parameter of IterateOverHeap and IterateOverInstancesOfClass functions;
-      disallow NULL for this parameter.
+      disallow null pointer for this parameter.
       Clarify, correct and make consistent: wording about current thread,
       opaque frames and insufficient number of frames in PopFrame.
       Consistently use "current frame" rather than "topmost".
@@ -36245,7 +36557,7 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                         <br>
                         12 February 2017</th><td>
       Minor update for GetCurrentThread function:
-      The function may return NULL in the start phase if the
+      The function may return null pointer in the start phase if the
       can_generate_early_vmstart capability is enabled.
   </td>
                 </tr>
@@ -36343,5 +36655,5 @@ GarbageCollectionFinish(jvmtiEnv *jvmti_env)</pre>
                 </tr>
             </table>
         </main>
-    <footer class="legal-footer"><hr/><a href="../legal/copyright.html">Copyright</a> &copy; 1993, 2023, Oracle and/or its affiliates, 500 Oracle Parkway, Redwood Shores, CA 94065 USA.<br>All rights reserved. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java22speclicense.html">license terms</a> and the <a href="https://www.oracle.com/technetwork/java/redist-137594.html">documentation redistribution policy</a>. <br><strong>DRAFT 22-crac-24</strong> <!-- Version 22-crac-24 --></footer></body>
+    <footer class="legal-footer"><hr/><a href="../legal/copyright.html">Copyright</a> &copy; 1993, 2024, Oracle and/or its affiliates, 500 Oracle Parkway, Redwood Shores, CA 94065 USA.<br>All rights reserved. Use is subject to <a href="https://www.oracle.com/java/javase/terms/license/java24speclicense.html">license terms</a> and the <a href="https://www.oracle.com/technetwork/java/redist-137594.html">documentation redistribution policy</a>. <br><strong>DRAFT 24-crac+20-32</strong> <!-- Version 24-crac+20-32 --></footer></body>
 </html>
